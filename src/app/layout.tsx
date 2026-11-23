@@ -2,29 +2,21 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SecurePass — Zero-Knowledge Password Architecture",
+  title: "SecurePass — Password Manager with 2FA",
   description:
-    "A client-side encrypted password manager featuring two-factor authentication and cryptographically secure generation. B.Tech CSE Final Year Project Group G195, GLA University.",
-  keywords: [
-    "Password Manager",
-    "Client-Side Encryption",
-    "Two-Factor Authentication",
-    "2FA",
-    "Web Crypto API",
-    "GLA University",
-  ],
+    "Generate strong passwords and manage your credentials with SecurePass. B.Tech final-year project developed by Group G195 at GLA University, Mathura.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#080c14",
+  themeColor: "#fafafa",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout(props: LayoutProps<"/">) {
   return (
-    <html lang="en" className="dark h-full antialiased scroll-smooth">
-      <body className="min-h-full flex flex-col bg-background text-foreground cyber-grid selection:bg-blue-600/30 selection:text-blue-200">
+    <html lang="en" className="h-full scroll-smooth">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
         {props.children}
       </body>
     </html>
