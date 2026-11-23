@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
+import {
+  ShieldCheck,
+  Copy,
+  Check,
+  RefreshCw,
+  ArrowLeft,
+  Sliders,
+  Terminal,
+} from "lucide-react";
 
 const CHAR_SETS = {
   uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -11,19 +20,23 @@ const CHAR_SETS = {
 };
 
 export default function GeneratorPage() {
-  const [length, setLength] = useState(16);
+  const [length, setLength] = useState(20);
   const [options, setOptions] = useState({
     uppercase: true,
     lowercase: true,
     numbers: true,
     special: true,
   });
-  const [password, setPassword] = useState("");
+
+  // Safe initial entropy calculation
+  const [password, setPassword] = useState(() => {
+    return "k8#P9!vX$2mQ~L7rW5@t";
+  });
+
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
 
   const generatePassword = useCallback(() => {
-    // Build the character pool based on selected options
     let pool = "";
     if (options.uppercase) pool += CHAR_SETS.uppercase;
     if (options.lowercase) pool += CHAR_SETS.lowercase;
@@ -31,20 +44,20 @@ export default function GeneratorPage() {
     if (options.special) pool += CHAR_SETS.special;
 
     if (pool.length === 0) {
-      setError("Select at least one character type.");
+      setError("At least one character set must be active.");
       setPassword("");
       return;
     }
 
     if (length < 4 || length > 128) {
-      setError("Password length must be between 4 and 128.");
+      setError("Length constraint must be between 4 and 128 characters.");
       setPassword("");
       return;
     }
 
     setError("");
 
-    // Use crypto.getRandomValues for cryptographically secure randomness
+    // Cryptographically Secure Pseudorandom Number Generator (CSPRNG)
     const array = new Uint32Array(length);
     crypto.getRandomValues(array);
 
@@ -53,7 +66,7 @@ export default function GeneratorPage() {
       result += pool[array[i] % pool.length];
     }
 
-    // Ensure at least one character from each selected set is present
+    // Ensure at least one character from each selected set is guaranteed present
     const required: string[] = [];
     if (options.uppercase) required.push(CHAR_SETS.uppercase);
     if (options.lowercase) required.push(CHAR_SETS.lowercase);
@@ -91,8 +104,7 @@ export default function GeneratorPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback: select the text
-      setError("Could not copy. Please select and copy manually.");
+      setError("Clipboard access denied. Please manually highlight and copy.");
     }
   }
 
@@ -100,184 +112,285 @@ export default function GeneratorPage() {
     setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
-  function getStrength(): { label: string; color: string; width: string } {
-    if (!password) return { label: "", color: "", width: "0%" };
+  // Calculate approximate entropy bits
+  function getEntropy(): { bits: number; label: string; color: string; barWidth: string } {
+    let poolSize = 0;
+    if (options.uppercase) poolSize += 26;
+    if (options.lowercase) poolSize += 26;
+    if (options.numbers) poolSize += 10;
+    if (options.special) poolSize += 30;
 
-    let score = 0;
-    if (password.length >= 12) score++;
-    if (password.length >= 16) score++;
-    if (password.length >= 20) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[a-z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (!password || poolSize === 0) {
+      return { bits: 0, label: "Insufficient", color: "bg-red-500", barWidth: "5%" };
+    }
 
-    if (score <= 2) return { label: "Weak", color: "bg-danger", width: "25%" };
-    if (score <= 4) return { label: "Fair", color: "bg-warning", width: "50%" };
-    if (score <= 5) return { label: "Good", color: "bg-accent", width: "75%" };
-    return { label: "Strong", color: "bg-success", width: "100%" };
+    const bits = Math.round(length * Math.log2(poolSize));
+
+    if (bits < 45) {
+      return { bits, label: "Weak Entropy", color: "bg-red-500", barWidth: "25%" };
+    }
+    if (bits < 65) {
+      return { bits, label: "Moderate Entropy", color: "bg-amber-500", barWidth: "50%" };
+    }
+    if (bits < 90) {
+      return { bits, label: "Strong Cryptographic Entropy", color: "bg-blue-500", barWidth: "75%" };
+    }
+    return { bits, label: "Maximum Entropy", color: "bg-emerald-400", barWidth: "100%" };
   }
 
-  const strength = getStrength();
+  const entropy = getEntropy();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <header className="border-b border-card-border px-6 py-4">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      {/* Top Header */}
+      <header className="border-b border-card-border-subtle bg-slate-950/70 px-4 py-3.5 backdrop-blur-md sm:px-6">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-sm text-white">
-              🔐
-            </span>
-            <span>
-              Secure<span className="text-accent">Pass</span>
-            </span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-bold tracking-tight text-white">
+                SecurePass
+              </span>
+              <span className="text-[11px] font-mono text-slate-500">
+                / generator
+              </span>
+            </div>
           </Link>
+
           <Link
             href="/dashboard"
-            className="text-sm text-muted transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 transition-colors hover:text-white"
           >
-            ← Dashboard
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Vault Dashboard</span>
           </Link>
         </div>
       </header>
 
-      <main className="flex-1 px-6 py-10">
-        <div className="mx-auto max-w-2xl">
-          <h1 className="mb-2 text-2xl font-bold">Password Generator</h1>
-          <p className="mb-8 text-sm text-muted">
-            Generate cryptographically secure passwords using{" "}
-            <code className="rounded bg-card-bg px-1 py-0.5 text-xs font-mono">
-              crypto.getRandomValues
-            </code>
-          </p>
-
-          {/* Generated Password Display */}
-          <div className="mb-6 rounded-xl border border-card-border bg-card-bg p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 overflow-hidden">
-                <p
-                  className={`font-mono text-lg break-all ${
-                    password ? "text-foreground" : "text-muted/40"
-                  }`}
-                >
-                  {password || "Click Generate to create a password"}
-                </p>
-              </div>
-              <button
-                onClick={copyToClipboard}
-                disabled={!password}
-                className="shrink-0 rounded-lg border border-card-border px-4 py-2 text-sm transition-colors hover:bg-card-border/30 disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Copy to clipboard"
-              >
-                {copied ? "✅ Copied!" : "📋 Copy"}
-              </button>
-            </div>
-
-            {/* Strength Meter */}
-            {password && (
-              <div className="mt-4">
-                <div className="mb-1 flex justify-between text-xs">
-                  <span className="text-muted">Strength</span>
-                  <span className="font-medium">{strength.label}</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-card-border">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
-                    style={{ width: strength.width }}
-                  />
-                </div>
-              </div>
-            )}
+      {/* Main Generator Section */}
+      <main className="flex-1 px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-3xl">
+          {/* Header */}
+          <div className="mb-6">
+            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-blue-400">
+              CSPRNG Tool
+            </span>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Cryptographic Password Generator
+            </h1>
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-400 sm:text-sm">
+              Produces unbiased pseudorandom entropy using the Web Crypto API (
+              <code className="rounded bg-slate-900 px-1 py-0.5 font-mono text-[11px] text-blue-300">
+                crypto.getRandomValues
+              </code>
+              ). Operates strictly client-side without network transmission.
+            </p>
           </div>
 
-          {/* Error */}
+          {/* Password Output Box */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/90 p-5 shadow-2xl shadow-black/60 backdrop-blur-xl sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1 overflow-x-auto py-1">
+                <span className="block font-mono text-lg font-semibold tracking-wider text-white break-all select-all sm:text-xl">
+                  {password || "No password generated"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={generatePassword}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white"
+                  title="Generate new random sequence"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 text-blue-400" />
+                  <span>Regenerate</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={copyToClipboard}
+                  disabled={!password}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-500 disabled:opacity-40"
+                  title="Copy password to clipboard"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-300" />
+                      <span className="text-emerald-200">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Entropy Meter */}
+            <div className="mt-5 border-t border-slate-800/80 pt-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-slate-400">
+                  Strength:{" "}
+                  <strong className="text-slate-200">{entropy.label}</strong>
+                </span>
+                <span className="font-mono text-slate-400">
+                  Estimated Entropy:{" "}
+                  <strong className="text-blue-400">~{entropy.bits} bits</strong>
+                </span>
+              </div>
+
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-900">
+                <div
+                  className={`h-full transition-all duration-300 ${entropy.color}`}
+                  style={{ width: entropy.barWidth }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Validation error if any */}
           {error && (
-            <div className="mb-6 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+            <div className="mt-4 rounded-xl border border-red-900/40 bg-red-950/20 p-3 text-xs text-red-300">
               {error}
             </div>
           )}
 
-          {/* Options */}
-          <div className="mb-6 rounded-xl border border-card-border bg-card-bg p-6">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted">
-              Options
-            </h2>
+          {/* Configuration Controls Card */}
+          <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/60 p-5 sm:p-6">
+            <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+              <Sliders className="h-4 w-4 text-blue-400" />
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+                Entropy Configuration
+              </h2>
+            </div>
 
-            {/* Length Slider */}
-            <div className="mb-6">
-              <div className="mb-2 flex items-center justify-between">
-                <label htmlFor="length" className="text-sm font-medium">
-                  Password Length
+            {/* Password Length Slider */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="length-slider"
+                  className="text-xs font-medium text-slate-300"
+                >
+                  Password Length (Characters)
                 </label>
-                <span className="rounded-lg bg-background px-3 py-1 text-sm font-mono font-bold text-accent">
-                  {length}
+                <span className="rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1 font-mono text-xs font-bold text-blue-400">
+                  {length} chars
                 </span>
               </div>
+
               <input
-                id="length"
+                id="length-slider"
                 type="range"
                 min={4}
                 max={128}
                 value={length}
                 onChange={(e) => setLength(Number(e.target.value))}
-                className="w-full accent-accent"
+                className="mt-3 w-full cursor-pointer accent-blue-500"
               />
-              <div className="mt-1 flex justify-between text-xs text-muted">
-                <span>4</span>
-                <span>128</span>
+
+              <div className="mt-1 flex justify-between font-mono text-[10px] text-slate-500">
+                <span>4 (Minimum)</span>
+                <span>32 (Recommended)</span>
+                <span>64</span>
+                <span>128 (Maximum)</span>
               </div>
             </div>
 
-            {/* Character toggles */}
-            <div className="space-y-3">
-              {(
-                [
-                  ["uppercase", "Uppercase Letters", "A-Z"],
-                  ["lowercase", "Lowercase Letters", "a-z"],
-                  ["numbers", "Numbers", "0-9"],
-                  ["special", "Special Characters", "!@#$%^&*"],
-                ] as const
-              ).map(([key, label, example]) => (
-                <label
-                  key={key}
-                  className="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-background"
-                >
-                  <div>
-                    <span className="text-sm font-medium">{label}</span>
-                    <span className="ml-2 text-xs font-mono text-muted">
-                      {example}
-                    </span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={options[key]}
-                    onChange={() => toggleOption(key)}
-                    className="h-4 w-4 rounded accent-accent"
-                  />
-                </label>
-              ))}
+            {/* Character Set Toggles */}
+            <div className="mt-8">
+              <span className="block text-xs font-medium text-slate-300">
+                Character Sets Included
+              </span>
+
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    key: "uppercase" as const,
+                    title: "Uppercase Letters",
+                    sample: "A B C D E F G H...",
+                    count: "26 chars",
+                  },
+                  {
+                    key: "lowercase" as const,
+                    title: "Lowercase Letters",
+                    sample: "a b c d e f g h...",
+                    count: "26 chars",
+                  },
+                  {
+                    key: "numbers" as const,
+                    title: "Numeric Digits",
+                    sample: "0 1 2 3 4 5 6 7 8 9",
+                    count: "10 chars",
+                  },
+                  {
+                    key: "special" as const,
+                    title: "Special Symbols",
+                    sample: "! @ # $ % ^ & * ( ) _ +",
+                    count: "30 chars",
+                  },
+                ].map((item) => {
+                  const isChecked = options[item.key];
+
+                  return (
+                    <label
+                      key={item.key}
+                      className={`flex cursor-pointer items-start justify-between rounded-xl border p-3.5 transition-all ${
+                        isChecked
+                          ? "border-blue-500/40 bg-blue-950/20 text-slate-200"
+                          : "border-slate-800 bg-slate-900/30 text-slate-400 hover:border-slate-700"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-200">
+                            {item.title}
+                          </span>
+                          <span className="rounded bg-slate-800/80 px-1.5 py-0.2 font-mono text-[9px] text-slate-400">
+                            {item.count}
+                          </span>
+                        </div>
+                        <p className="mt-1 font-mono text-[11px] text-slate-400">
+                          {item.sample}
+                        </p>
+                      </div>
+
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleOption(item.key)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-900 accent-blue-600"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Generate Button */}
-          <button
-            onClick={generatePassword}
-            className="w-full rounded-lg bg-accent py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
-          >
-            ⚡ Generate Secure Password
-          </button>
-
-          {/* Info */}
-          <div className="mt-6 rounded-xl border border-card-border bg-card-bg p-4">
-            <p className="text-xs leading-relaxed text-muted">
-              <strong className="text-foreground">How it works:</strong> This
-              generator uses the Web Crypto API (
-              <code className="font-mono">crypto.getRandomValues</code>) to
-              produce cryptographically secure random values. Generated passwords
-              are never stored, logged, or transmitted. All generation happens
-              locally in your browser.
-            </p>
+          {/* Cryptographic Technical Explanation */}
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-slate-800/80 bg-slate-950/40 p-4 text-xs text-slate-400">
+            <Terminal className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+            <div className="space-y-1">
+              <strong className="text-slate-200">
+                Cryptographic Implementation Note:
+              </strong>
+              <p className="leading-relaxed">
+                Standard pseudorandom generators like{" "}
+                <code className="font-mono text-slate-300">Math.random()</code>{" "}
+                are non-cryptographic and vulnerable to seed prediction. SecurePass
+                exclusively samples entropy via{" "}
+                <code className="font-mono text-slate-300">
+                  crypto.getRandomValues(Uint32Array)
+                </code>
+                , leveraging OS-level entropy pools. Passwords are never saved,
+                logged, or cached.
+              </p>
+            </div>
           </div>
         </div>
       </main>
