@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SecurePass — Secure Password Manager with 2FA
+
+<div align="center">
+
+🔐 **SecurePass**
+
+A secure password manager with Two-Factor Authentication (2FA).
+
+**B.Tech CSE Final Year Project · Group G195 · GLA University, Mathura**
+
+</div>
+
+---
+
+## About
+
+SecurePass is a modern, web-based password manager built as a final-year B.Tech Computer Science project. It demonstrates secure credential storage, client-side encryption, and TOTP-based two-factor authentication.
+
+### Team Members
+
+| # | Name | Role |
+|---|------|------|
+| 1 | Anukalp Gupta | Project integration, architecture, repository management |
+| 2 | Nishant Singh | Frontend and UI components |
+| 3 | Dileep Bhardwaj | Authentication and Firebase integration |
+| 4 | Ayushmaan Gupta | Password generator and security features |
+| 5 | Utpal Kumar | Testing, documentation, and project demonstration |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Authentication | Firebase Authentication (planned) |
+| Database | Firebase Firestore (planned) |
+| Backend API | Python FastAPI (planned, as per approved synopsis) |
+| Encryption | Web Crypto API (client-side) |
+
+## Current Status — Week 1
+
+✅ Project initialized with Next.js App Router + TypeScript + Tailwind CSS
+✅ Landing page with responsive design and dark mode
+✅ Login and registration forms with client-side validation
+✅ Initial dashboard with vault placeholder and navigation
+✅ Working password generator with `crypto.getRandomValues`
+✅ Documentation and project structure
+
+⚠️ Firebase Authentication is **not connected** — forms validate but do not authenticate.
+⚠️ Encrypted vault and TOTP 2FA are **planned for future weeks**.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or later
+- npm (included with Node.js)
+- Git
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/ask8962/securepass-password-manager.git
+cd securepass-password-manager
+
+# Install dependencies
+npm install
+
+# Copy environment template
+cp .env.example .env.local
+
+# Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Available Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint checks |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+securepass/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── page.tsx            # Landing page
+│   │   ├── globals.css         # Global styles & theme
+│   │   ├── login/
+│   │   │   └── page.tsx        # Login form
+│   │   ├── register/
+│   │   │   └── page.tsx        # Registration form
+│   │   ├── dashboard/
+│   │   │   └── page.tsx        # Vault dashboard
+│   │   └── generator/
+│   │       └── page.tsx        # Password generator
+│   └── components/
+│       ├── Header.tsx          # Navigation header
+│       ├── Footer.tsx          # Page footer
+│       └── FeatureCard.tsx     # Feature display card
+├── docs/                       # Project documentation
+├── public/                     # Static assets
+├── .env.example                # Environment template
+├── package.json
+└── tsconfig.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Development Roadmap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Week | Milestone |
+|------|-----------|
+| **1** ✅ | Project foundation, landing page, auth UI, dashboard, password generator |
+| 2 | Firebase authentication, Firestore setup, database design |
+| 3 | Client-side encryption, master passphrase, encryption tests |
+| 4 | Encrypted credential CRUD, vault unlock |
+| 5 | TOTP MFA architecture, enrollment |
+| 6 | MFA verification, session management, auto-lock |
+| 7 | Recovery keys, password-strength analysis |
+| 8+ | Integration, hardening, testing, deployment |
 
-## Deploy on Vercel
+## Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This is an academic project. All five team members contribute through:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Working on assigned feature branches.
+2. Creating pull requests for review.
+3. Following the contribution workflow in `docs/team-onboarding/`.
+
+See [docs/team-onboarding/contribution-workflow.md](docs/team-onboarding/contribution-workflow.md) for details.
+
+## License
+
+This project is developed for academic purposes at GLA University, Mathura.
+
+---
+
+<div align="center">
+
+**SecurePass** · Group G195 · GLA University, Mathura
+
+</div>
