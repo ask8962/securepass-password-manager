@@ -83,6 +83,9 @@ export default function HomePage() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted-light text-foreground">
                     <KeyRound className="h-5 w-5 text-accent" />
                   </div>
+                  <span className="rounded-full bg-muted-light px-2.5 py-0.5 text-[11px] font-medium text-muted">
+                    Available
+                  </span>
                 </div>
                 <h3 className="text-base font-semibold text-foreground">
                   Password Generator
