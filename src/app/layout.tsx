@@ -1,16 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "SecurePass — Secure Password Manager",
@@ -18,18 +7,11 @@ export const metadata: Metadata = {
     "A secure password manager with two-factor authentication (2FA). Built as a B.Tech CSE Final Year Project by Group G195.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout(props: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
-    >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+    <html lang="en" className="h-full antialiased dark">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+        {props.children}
       </body>
     </html>
   );
