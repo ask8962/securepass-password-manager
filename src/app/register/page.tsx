@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, isFirebaseConfigured } from "@/lib/firebase";
 
 type RegisterErrors = {
   name?: string;
@@ -12,13 +15,15 @@ type RegisterErrors = {
 };
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<RegisterErrors>({});
-  const [notice, setNotice] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function validate(): boolean {
     const newErrors: RegisterErrors = {};
@@ -49,10 +54,41 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setAuthError(null);
+
     if (!validate()) return;
-    setNotice(true);
+
+    if (!isFirebaseConfigured() || !auth) {
+      setAuthError(
+        "Firebase is not configured yet. Please add your Firebase credentials to .env.local to enable registration. (See docs/firebase-setup-notes.md)"
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createUserWithEmailAndPassword(auth, email.trim(), password);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+      console.error("Firebase Registration Error:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        setAuthError("This email is already registered. Please sign in instead.");
+      } else if (error.code === "auth/weak-password") {
+        setAuthError("Password is too weak. Please use at least 8 characters.");
+      } else if (error.code === "auth/invalid-email") {
+        setAuthError("Invalid email address format.");
+      } else if (error.code === "auth/network-request-failed") {
+        setAuthError("Network error. Please check your internet connection.");
+      } else {
+        setAuthError(error.message || "Failed to create account. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -75,13 +111,11 @@ export default function RegisterPage() {
         {/* Card */}
         <div className="rounded-xl border border-card-border bg-card-bg p-6 shadow-sm sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            {/* Firebase notice */}
-            {notice && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                <strong>Firebase Authentication is not connected.</strong>
-                <p className="mt-1 text-amber-700">
-                  Form validation succeeded, but user registration is not yet configured.
-                </p>
+            {/* Auth error notification */}
+            {authError && (
+              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                <div className="leading-relaxed">{authError}</div>
               </div>
             )}
 
@@ -201,9 +235,10 @@ export default function RegisterPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full rounded-lg bg-accent py-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover"
+                disabled={isSubmitting}
+                className="w-full rounded-lg bg-accent py-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
               >
-                Create Account
+                {isSubmitting ? "Creating account..." : "Create Account"}
               </button>
             </div>
           </form>

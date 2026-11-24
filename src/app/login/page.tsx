@@ -1,15 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, isFirebaseConfigured } from "@/lib/firebase";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const [notice, setNotice] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function validate(): boolean {
     const newErrors: { email?: string; password?: string } = {};
@@ -22,18 +27,51 @@ export default function LoginPage() {
 
     if (!password) {
       newErrors.password = "Password is required.";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setAuthError(null);
+
     if (!validate()) return;
-    setNotice(true);
+
+    if (!isFirebaseConfigured() || !auth) {
+      setAuthError(
+        "Firebase is not configured yet. Please add your Firebase credentials to .env.local to enable real login. (See docs/firebase-setup-notes.md)"
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+      console.error("Firebase Login Error:", error);
+
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        setAuthError("Invalid email or password. Please check your credentials.");
+      } else if (error.code === "auth/too-many-requests") {
+        setAuthError("Too many failed attempts. Please try again in a few minutes.");
+      } else if (error.code === "auth/network-request-failed") {
+        setAuthError("Network error. Please check your internet connection.");
+      } else {
+        setAuthError(error.message || "Failed to sign in. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -56,13 +94,11 @@ export default function LoginPage() {
         {/* Card */}
         <div className="rounded-xl border border-card-border bg-card-bg p-6 shadow-sm sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            {/* Firebase notice */}
-            {notice && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                <strong>Firebase Authentication is not connected.</strong>
-                <p className="mt-1 text-amber-700">
-                  Form validation succeeded, but user authentication is not yet configured.
-                </p>
+            {/* Auth error notification */}
+            {authError && (
+              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                <div className="leading-relaxed">{authError}</div>
               </div>
             )}
 
@@ -133,9 +169,10 @@ export default function LoginPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full rounded-lg bg-accent py-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover"
+                disabled={isSubmitting}
+                className="w-full rounded-lg bg-accent py-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
               >
-                Sign In
+                {isSubmitting ? "Signing in..." : "Sign In"}
               </button>
             </div>
           </form>
