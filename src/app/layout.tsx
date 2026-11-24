@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "SecurePass — Password Manager with 2FA",
@@ -17,7 +18,7 @@ export default function RootLayout(props: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {props.children}
+        <AuthProvider>{props.children}</AuthProvider>
       </body>
     </html>
   );
