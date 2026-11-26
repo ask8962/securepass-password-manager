@@ -17,6 +17,8 @@ const CHAR_SETS = {
   special: "!@#$%^&*()_+-=[]{}|;:,.<>?",
 };
 
+const AMBIGUOUS_CHARS_REGEX = /[0O1lI]/g;
+
 export default function GeneratorPage() {
   const [length, setLength] = useState(16);
   const [options, setOptions] = useState({
@@ -24,6 +26,7 @@ export default function GeneratorPage() {
     lowercase: true,
     numbers: true,
     special: true,
+    excludeAmbiguous: false,
   });
 
   const [password, setPassword] = useState("k8#P9!vX$2mQ~L7r");
@@ -31,11 +34,21 @@ export default function GeneratorPage() {
   const [error, setError] = useState("");
 
   const generatePassword = useCallback(() => {
+    const filterAmbiguous = (str: string) =>
+      options.excludeAmbiguous ? str.replace(AMBIGUOUS_CHARS_REGEX, "") : str;
+
+    const activeSets = {
+      uppercase: filterAmbiguous(CHAR_SETS.uppercase),
+      lowercase: filterAmbiguous(CHAR_SETS.lowercase),
+      numbers: filterAmbiguous(CHAR_SETS.numbers),
+      special: filterAmbiguous(CHAR_SETS.special),
+    };
+
     let pool = "";
-    if (options.uppercase) pool += CHAR_SETS.uppercase;
-    if (options.lowercase) pool += CHAR_SETS.lowercase;
-    if (options.numbers) pool += CHAR_SETS.numbers;
-    if (options.special) pool += CHAR_SETS.special;
+    if (options.uppercase) pool += activeSets.uppercase;
+    if (options.lowercase) pool += activeSets.lowercase;
+    if (options.numbers) pool += activeSets.numbers;
+    if (options.special) pool += activeSets.special;
 
     if (pool.length === 0) {
       setError("Please select at least one character type.");
@@ -62,10 +75,18 @@ export default function GeneratorPage() {
 
     // Ensure at least one character from each selected set
     const required: string[] = [];
-    if (options.uppercase) required.push(CHAR_SETS.uppercase);
-    if (options.lowercase) required.push(CHAR_SETS.lowercase);
-    if (options.numbers) required.push(CHAR_SETS.numbers);
-    if (options.special) required.push(CHAR_SETS.special);
+    if (options.uppercase && activeSets.uppercase.length > 0) {
+      required.push(activeSets.uppercase);
+    }
+    if (options.lowercase && activeSets.lowercase.length > 0) {
+      required.push(activeSets.lowercase);
+    }
+    if (options.numbers && activeSets.numbers.length > 0) {
+      required.push(activeSets.numbers);
+    }
+    if (options.special && activeSets.special.length > 0) {
+      required.push(activeSets.special);
+    }
 
     if (required.length <= length) {
       const positions = new Uint32Array(required.length);
@@ -266,6 +287,25 @@ export default function GeneratorPage() {
                     />
                   </label>
                 ))}
+              </div>
+
+              <div className="mt-3">
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-card-border px-3 py-2 text-xs transition-colors hover:bg-muted-light">
+                  <div>
+                    <span className="font-medium text-foreground">
+                      Exclude ambiguous characters
+                    </span>
+                    <span className="block text-[11px] text-muted">
+                      Avoid similar-looking characters (0, O, 1, l, I)
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={options.excludeAmbiguous}
+                    onChange={() => toggleOption("excludeAmbiguous")}
+                    className="h-4 w-4 rounded accent-accent"
+                  />
+                </label>
               </div>
             </div>
 
