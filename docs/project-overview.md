@@ -20,20 +20,18 @@ A web-based password manager featuring:
 ## Technology Stack
 
 ### Frontend
-- **Next.js 16** — React framework with App Router for server and client components.
-- **TypeScript** — Type-safe development with compile-time error checking.
-- **Tailwind CSS 4** — Utility-first CSS framework for responsive design.
+- **Next.js `16.4.6`** — React framework with App Router (`src/app/`).
+- **React `19.3.0` & TypeScript `^5`** — Component UI with strict compile-time type checking.
+- **Tailwind CSS `4.3.3`** — Utility-first CSS framework for minimal light-mode responsive design.
 
-### Backend (Planned)
-- **Firebase Authentication** — User signup, login, and session management.
-- **Firebase Firestore** — Cloud database for encrypted credential storage.
-- **Python FastAPI** — Optional REST API backend as proposed in the approved synopsis.
+### Authentication & Client Crypto (Implemented in Prototype)
+- **Firebase Authentication (`firebase ^13.4.0`)** — Email/Password signup (`updateProfile` saving `displayName`), login, logout, and persistent sessions.
+- **Web Crypto API (`window.crypto`)** — `crypto.getRandomValues` for password generation plus in-memory `PBKDF2-SHA-256` and `AES-256-GCM` encryption demonstration.
 
-### Security
-- **Web Crypto API** — `crypto.getRandomValues` for secure random number generation.
-- **AES-256-GCM** (Planned) — Industry-standard encryption for stored credentials.
-- **PBKDF2 / Argon2** (Planned) — Key derivation from master passphrase.
+### Future / Planned Modules
+- **Firebase Firestore** (Planned) — Cloud database for persistent encrypted credential storage.
 - **TOTP (RFC 6238)** (Planned) — Time-based one-time password for 2FA.
+- **Python FastAPI** (Planned) — Auxiliary REST API backend as proposed in the approved synopsis.
 
 ## Architecture Overview
 
@@ -86,11 +84,11 @@ A web-based password manager featuring:
 - Security auditing tools.
 - Testing, deployment, and documentation.
 
-## Known Limitations (Current)
-1. Firebase Authentication is not yet connected — UI validates but does not authenticate.
-2. No credential storage or encryption is implemented — vault is a placeholder.
-3. TOTP 2FA is planned but not started.
-4. The FastAPI backend is part of the approved synopsis but architecture decisions are pending team and supervisor approval.
+## Known Limitations (Current 25–30% Prototype)
+1. **No Firestore Vault Persistence Yet:** Encrypted credentials in the `/dashboard` demonstration stay in browser memory (`React useState`) only and clear on reload.
+2. **No TOTP 2FA Yet:** Marked `"Coming Soon"` on the UI; planned for Phase 3.
+3. **FastAPI Backend Pending:** Proposed in the approved synopsis, not yet implemented.
+4. **No Automated Test Runner Yet:** Verification uses `npx tsc --noEmit`, `npm run lint`, `npm run build`, and manual testing.
 
 ## References
 - OWASP Password Storage Cheat Sheet

@@ -29,8 +29,8 @@
 - **What to say:** *"Good morning Sir/Ma'am. We are Group G195. Our major project is SecurePass — a secure password manager designed with Zero-Knowledge client-side encryption and modern authentication. Today, we are demonstrating our 20–25% milestone prototype covering user identity, cryptographically secure password generation, and local authenticated encryption."*
 
 #### Step 2: Show Landing Page & Architecture Highlights
-- **Action:** Scroll through the minimal landing page. Point to the "Zero-Knowledge Architecture", "AES-256-GCM Encryption", and "CSPRNG Password Generation" highlights.
-- **What to say:** *"We have designed a clean, professional interface without clutter. Our security model ensures that master passwords and plaintext credentials never leave the user's browser unencrypted."*
+- **Action:** Scroll through the minimal landing page. Point to the three feature cards (`Secure Password Vault` and `Two-Factor Authentication` labeled `Coming Soon`, and `Password Generator` labeled `Available`).
+- **What to say:** *"We designed a clean, light interface without clutter, clearly showing what is available today versus upcoming features."*
 
 #### Step 3: Test Route Protection (Security Check)
 - **Action:** In the browser address bar, manually type `http://localhost:3000/dashboard` and press Enter.
@@ -49,11 +49,11 @@
 - **What to say:** *"The form enforces client-side validation for email formats and password length before contacting the authentication server."*
 
 #### Step 6: Complete Valid User Registration
-- **Action:** Enter a real or test email (e.g., `student.demo@gla.ac.in`) and a secure password (e.g., `DemoSecure@2026`). Click "Create account".
-- **What to say:** *"When we submit valid credentials, the Firebase Auth SDK creates the user identity securely. The user is automatically redirected to the dashboard."*
+- **Action:** Enter Name, a test email (e.g., `demo.test01@example.com`), and a secure password (`DemoSecure@2026`). Click **`Create Account`**.
+- **What to say:** *"When we submit valid credentials, Firebase Auth creates the account and `updateProfile()` saves the user's Full Name before redirecting to the protected dashboard."*
 
 #### Step 7: Verify Session Persistence & User Context
-- **Action:** Show the dashboard header displaying `"Welcome, student.demo@gla.ac.in"`. Press `F5` / Refresh the browser.
+- **Action:** Show the dashboard welcome card displaying the saved name/email and header displaying `"Logged in as: ..."`. Press `F5` / Refresh the browser.
 - **What to say:** *"Notice that our dashboard displays the authenticated user's email. When I refresh the browser, the session is preserved through Firebase's `onAuthStateChanged` observer. The user is not logged out upon reload."*
 
 ---
@@ -70,19 +70,19 @@
   - Master Passphrase: Enter `MasterPassphrase123!`
 - **What to say:** *"We input a sample password to protect, along with a user's Master Passphrase. The master passphrase is never stored anywhere."*
 
-#### Step 10: Click "Encrypt Password" & Inspect Cryptographic Artifacts
-- **Action:** Click the "Encrypt Password" button.
+#### Step 10: Click "Encrypt with AES-256-GCM" & Inspect Cryptographic Artifacts
+- **Action:** Click the **`Encrypt with AES-256-GCM`** button.
 - **What to say:** *"When I click Encrypt, two standard cryptographic algorithms execute locally:*
   1. *First, PBKDF2 with SHA-256 and 100,000 iterations derives a 256-bit AES key from the master passphrase using a unique 128-bit random salt.*
   2. *Second, AES-256 in Galois/Counter Mode (GCM) encrypts the password with a 96-bit random initialization vector (IV).*
   *As you can see on the screen, we have generated the Base64 Salt, IV, and the encrypted Ciphertext with its 128-bit authentication tag."*
 
 #### Step 11: Demonstrate Successful Decryption
-- **Action:** In the Decryption section, leave the correct passphrase `MasterPassphrase123!` and click "Decrypt Password".
-- **What to say:** *"When we decrypt with the exact same master passphrase, the key is derived again, the AES-GCM authentication tag is validated, and the original plaintext `MySecretCollegePassword#99` is restored safely in memory."*
+- **Action:** In the Decryption section (`Test Decryption`), type the matching passphrase `MasterDemoKey2026!` into the box and click **`Decrypt`**.
+- **What to say:** *"When we decrypt with the exact same master passphrase, the key is derived again, the AES-GCM authentication tag is validated, and the original plaintext is restored safely in memory (`Auth Tag Verified`)."*
 
 #### Step 12: Demonstrate Integrity Protection & Wrong Passphrase Failure
-- **Action:** Change the decryption passphrase to a wrong password (e.g., `WrongPassword!`) and click "Decrypt Password".
+- **Action:** Change the decryption passphrase to a wrong password (e.g., `WrongPassword!`) and click **`Decrypt`**.
 - **What to say:** *"Now, watch what happens if an attacker enters the wrong passphrase or tampers with the ciphertext. The Web Crypto API automatically validates the GCM authentication tag. Because the tag does not match, decryption fails with an error and zero plaintext data is exposed. This proves data integrity and authenticity."*
 
 ---
@@ -96,10 +96,10 @@
 #### Step 14: Demonstrate CSPRNG Randomness & Customization Controls
 - **Action:**
   - Adjust the length slider from 16 to 24 characters.
-  - Toggle Symbols or Numbers off and back on.
-  - Click "Generate New Password".
-  - Click "Copy Password" (point out the "Copied!" feedback).
-- **What to say:** *"Unlike basic generators that use JavaScript's `Math.random()`, which is predictable and insecure, SecurePass uses `window.crypto.getRandomValues()`. This is a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG) seeded directly by the operating system's hardware entropy. We can adjust the length up to 128 characters and toggle character sets, with real-time entropy calculation."*
+  - Toggle Symbols or **`Exclude ambiguous characters`**.
+  - Click **`Generate New Password`**.
+  - Click **`Copy`** (point out `"Copied"` feedback).
+- **What to say:** *"Unlike basic generators that use JavaScript's `Math.random()`, which is predictable and insecure, SecurePass uses `window.crypto.getRandomValues()` directly upon client initialization and regeneration. Users can adjust lengths up to 128 characters, exclude ambiguous characters (`0, O, 1, l, I`), and view the 7-rule strength meter."*
 
 ---
 

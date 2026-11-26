@@ -76,32 +76,30 @@ This guide contains the most critical viva questions examiners ask during major 
 
 ---
 
-### Q8. How do you calculate the entropy of a generated password?
+### Q8. How do you evaluate the strength of a generated password?
 - **English Answer:**  
-  *"Password entropy measures unpredictability in bits, calculated using Shannon's entropy formula:  
-  $$E = L \times \log_2(N)$$  
-  where $L$ is password length and $N$ is the size of the character pool. For example, a 16-character password with lowercase, uppercase, numbers, and symbols uses a pool size of $26 + 26 + 10 + 26 = 88$. The entropy is $16 \times \log_2(88) \approx 103.3$ bits. Anything above 80 bits is considered very strong against offline brute-force attacks."*
+  *"In our generator (`getStrength` inside `PasswordGeneratorClient.tsx`), password strength is evaluated using a 7-rule scoring system checking length thresholds (`>= 10`, `>= 14`, `>= 18` characters) and character-class diversity (uppercase, lowercase, numbers, symbols). Depending on the score (0–7), it displays `Weak`, `Fair`, `Good`, or `Strong`."*
 - **Concept Samajhne Ke Liye (Hinglish):**  
-  *Entropy ka matlab hota hai password kitna unpredictable hai (bits of randomness). Formula hota hai: Length $\times \log_2(\text{character pool size})$. Agar pool me 88 characters hain aur password 16 letters ka hai, toh entropy lagbhag 103 bits aati hai. 80 bits se upar ka password super-strong mana jaata hai jisse duniya ka sabse tez supercomputer bhi crack nahi kar sakta.*
-- **Key Keywords:** `Shannon Entropy`, `Bits of Randomness`, `Character Pool Size`, `Brute-force Resistance`.
+  *Strength meter 7 simple conditions check karta hai: length 10/14/18 se zyada hai ya nahi, aur uppercase, lowercase, digit, symbol shamil hain ya nahi. Us score ke base par Weak, Fair, Good, ya Strong bar dikhta hai.*
+- **Key Keywords:** `Rule-Based Scoring`, `Character Variety`, `Password Length`.
 
 ---
 
 ### Q9. How do you ensure the generator selects characters uniformly without bias?
 - **English Answer:**  
-  *"We generate a random byte using `crypto.getRandomValues()` and map it uniformly onto our available character pool using modulo arithmetic or rejection sampling. Since our pool size is well below 256, mapping bias is negligible, ensuring each character has an equal probability of selection."*
+  *"We generate 32-bit unsigned random integers (`Uint32Array`) using `window.crypto.getRandomValues()` and map them onto our active character pool (`pool[array[i] % pool.length]`). Because `Uint32Array` values span 0 to $2^{32}-1$ while the pool has at most 88 characters, modulo bias is negligible (~$0.000002\%$). We also insert at least one character from each enabled set at unique random positions."*
 - **Concept Samajhne Ke Liye (Hinglish):**  
-  *Har character ke select hone ka chance barabar (equal probability) hota hai. Hum random byte lete hain aur pool size ke according map karte hain, jisse koi bias ya pattern create na ho.*
-- **Key Keywords:** `Uniform Distribution`, `Modulo Mapping`, `No Bias`.
+  *Hum `Uint32Array` se bade 32-bit random numbers nikaal kar active character sets mein map karte hain aur ensure karte hain ki har selected set ka kam se kam 1 letter zaroor aaye.*
+- **Key Keywords:** `Uint32Array`, `CSPRNG`, `Guaranteed Class Inclusion`.
 
 ---
 
 ### Q10. What customization features are available in the SecurePass generator?
 - **English Answer:**  
-  *"Users can adjust password lengths from 4 to 128 characters and independently toggle four distinct character sets: Uppercase letters, Lowercase letters, Numbers, and Special Symbols. It also features a real-time entropy meter and one-click clipboard copying with visual feedback."*
+  *"Users can adjust password lengths from 4 to 128 characters, independently toggle Uppercase, Lowercase, Numbers, and Special Symbols, and toggle `Exclude ambiguous characters` to omit `0, O, 1, l, I`. It also includes a strength meter and one-click clipboard copy."*
 - **Concept Samajhne Ke Liye (Hinglish):**  
-  *User slider se 4 se lekar 128 characters tak length select kar sakta hai. Saath me Uppercase, Lowercase, Numbers, aur Symbols ke checkboxes hain. One-click copy button bhi hai jo clipboard me copy karke green feedback deta hai.*
-- **Key Keywords:** `Configurable Length`, `Character Sets`, `Clipboard API`.
+  *User slider se 4 se 128 characters select kar sakta hai, 4 character checkboxes on/off kar sakta hai, aur ambiguous letters (`0, O, 1, l, I`) bhi hata sakta hai. Copy button clipboard mein copy karke `Copied` feedback deta hai.*
+- **Key Keywords:** `Configurable Length`, `Ambiguous Character Exclusion`, `Clipboard API`.
 
 ---
 

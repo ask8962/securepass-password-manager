@@ -132,12 +132,13 @@ To verify the rule that all selected character types are guaranteed to appear ev
 1. **Length Slider**: Smoothly slides from 4 to 128; current value displays live in numerical badge.
 2. **Ambiguous Checkbox**: Toggles independently without breaking other checkboxes.
 3. **Copy to Clipboard**: `navigator.clipboard.writeText` successfully copies generated string; button visual feedback transitions to "Copied" with check icon for 2 seconds.
-4. **Strength Meter**: Accurately computes strength metrics:
+4. **Strength Meter**: Evaluates 7 heuristic checks mapped to strength levels:
    - Score $\le 2$: Weak (Red, 25%)
    - Score $3-4$: Fair (Amber, 50%)
    - Score $5$: Good (Blue, 75%)
    - Score $\ge 6$: Strong (Emerald, 100%)
-5. **Dark Mode UI Consistency**: Fully conforms with team CSS design system variables (`--background`, `--card-bg`, `--card-border`, `--accent`).
+5. **Minimal Light Theme UI Consistency**: Conforms with team CSS design system variables (`--background: #fafafa`, `--card-bg`, `--card-border`, `--accent`).
+*(Note: Initial password generation now runs on client mount via `PasswordGeneratorClient` using `crypto.getRandomValues()`, and tests above represent documented manual/verification scenarios rather than a Jest/Vitest automated test suite.)*
 
 ---
 

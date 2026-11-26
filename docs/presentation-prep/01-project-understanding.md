@@ -78,10 +78,10 @@ Koi bhi member yeh **galti se bhi mat bolna** ki neeche di gayi cheezein ban gay
 | **Vault CRUD (Add/Edit/Delete multiple entries)** | ❌ **NOT implemented.** Dashboard mein sirf ek single local encryption demo form hai; saved passwords ki list nahi hai. |
 | **Python FastAPI Backend** | ❌ **NOT implemented.** Synopsis mein proposed hai, par code mein koi Python/FastAPI folder ya API calls nahi hain. |
 | **Encrypting Website/Username in Demo** | ⚠️ **Partial.** Demo form mein Website aur Username boxes hain, par `encryptPassword()` sirf Password string encrypt karta hai. |
-| **Saving "Full Name" on Register** | ⚠️ **Partial.** Register form Name validate karta hai, par Firebase ko sirf `email` aur `password` bhejta hai (`updateProfile` call nahi hota). |
-| **Password Generator Initial State & Entropy** | ⚠️ **Small detail.** Page khulte hi pehla password `"k8#P9!vX$2mQ~L7r"` hardcoded hai (jabtak "Generate New Password" na dabayein). Strength meter 7-point heuristic hai, pure Shannon entropy math formula nahi. |
+| **Profile Display Name (`updateProfile`)** | ✅ **Updated on Cleanup Branch.** `register/page.tsx` ab `updateProfile()` se Firebase profile `displayName` save karta hai aur Dashboard par dikhata hai (`fix/pre-presentation-cleanup`). |
+| **Generator Client Initialization** | ✅ **Updated on Cleanup Branch.** Pehla password ab hardcoded string ke bajaye client mount par `crypto.getRandomValues()` se generate hota hai (`PasswordGeneratorClient.tsx`, `ssr: false`). Strength meter 7-point heuristic hai. |
 | **Automated Unit/E2E Test Suite** | ❌ **NOT implemented.** Koi Jest, Vitest, ya Playwright tests nahi hain. Sirf `tsc --noEmit`, `npm run lint`, `npm run build`, aur manual testing hui hai. |
-| **Outdated Older Docs** | ⚠️ `README.md`, `project-overview.md`, `architecture-plan.md`, aur `week-01.md` abhi bhi Week 1 purane status ("Firebase not connected", "dark theme") likhe hue hain — jabki code usse aage badh chuka hai! |
+| **Updated Docs** | ✅ `README.md`, `implementation-status.md`, `project-overview.md`, `architecture-plan.md` updated to match current code on `fix/pre-presentation-cleanup`. *(Historical Week 1 report in `docs/weekly-reports/week-01.md` kept as Week 1 archive).* |
 
 ---
 

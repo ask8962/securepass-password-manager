@@ -21,29 +21,29 @@ All features in this prototype run locally, utilize standard browser security st
 
 | Member Name | Role & Responsibility | Prototype Contribution |
 | :--- | :--- | :--- |
-| **Anukalp Gupta** | Project Integration & Architecture | Next.js 16 app architecture, TypeScript configuration, Git workflow management |
-| **Nishant Singh** | Frontend & UI Components | Minimalist light-theme UI layout, responsive navigation, accessible form inputs |
-| **Dileep Bhardwaj** | Authentication & Firebase | Firebase Auth integration, AuthContext provider, route protection, session management |
-| **Ayushmaan Gupta** | Cryptography & Password Generator | Web Crypto CSPRNG generator, AES-256-GCM + PBKDF2 local encryption demo |
-| **Utpal Kumar** | Testing & Documentation | Verification testing, live demo checklist, viva preparation guide, documentation |
+| **Anukalp Gupta** | Project Integration & Architecture | Next.js 16 app setup, AuthContext/Firebase & Web Crypto integration, Git PR merges |
+| **Nishant Singh** | Frontend & UI Review | UI/responsiveness review and landing page `'Available'` status badge fix (PR #2) |
+| **Dileep Bhardwaj** | Authentication & Firebase | Auth validation review, Firebase flows, and live authentication testing |
+| **Ayushmaan Gupta** | Cryptography & Password Generator | Ambiguous-character exclusion toggle and generator test documentation (PR #3) |
+| **Utpal Kumar** | Testing & Documentation | Manual verification testing, documentation review, and local encryption demo |
 
 ---
 
 ## 3. Implemented Features (Completed 20–25% Scope)
 
 ### 3.1. Firebase Authentication
-- **Registration (`/register`):** Functional user sign-up using Firebase Email & Password authentication. Includes client-side input validation and user-friendly error messages (e.g., weak password, email already in use).
-- **Login (`/login`):** Secure login interface validating against Firebase Auth credentials.
+- **Registration (`/register`):** Functional user sign-up using Firebase Email & Password authentication, saving Full Name via `updateProfile()`, with consistent validation and error messages (`src/lib/authValidation.ts`).
+- **Login (`/login`):** Secure login interface validating against Firebase Auth (`>= 6` characters minimum so existing valid Firebase accounts are never rejected).
 - **Session Persistence:** Persistent user sessions managed via Firebase Auth SDK (`onAuthStateChanged`). Refreshing the browser preserves active authentication state.
-- **Route Protection:** Protected route guards on `/dashboard`. Unauthenticated visitors are automatically redirected to `/login`.
-- **User Dashboard & Logout:** Displays active authenticated user's email address and allows one-click sign-out.
+- **Route Protection:** Protected client-side route guards on `/dashboard`. Unauthenticated visitors are automatically redirected to `/login`.
+- **User Dashboard & Logout:** Displays active authenticated user's profile name/email and allows one-click sign-out.
 - **Graceful Offline/Config Fallback:** If Firebase credentials are not yet configured in `.env.local`, friendly configuration notices appear without crashing the application.
 
 ### 3.2. Cryptographically Secure Password Generator (`/generator`)
-- **CSPRNG Implementation:** Uses standard `window.crypto.getRandomValues()` instead of pseudo-random `Math.random()`.
+- **CSPRNG Implementation:** Uses standard `window.crypto.getRandomValues()` instead of pseudo-random `Math.random()`, initialized dynamically on the client (`next/dynamic` with `ssr: false`) with zero hardcoded initial passwords and zero hydration errors.
 - **Configurable Length:** Supports variable password lengths from 4 to 128 characters (default: 16).
-- **Character Class Selection:** Independent toggles for Uppercase (`A-Z`), Lowercase (`a-z`), Numbers (`0-9`), and Special Symbols (`!@#$%^&*...`).
-- **Interactive Controls:** One-click regeneration, one-click clipboard copy with visual feedback, and real-time entropy/strength estimation.
+- **Character Class Selection & Ambiguous Filtering:** Independent toggles for Uppercase (`A-Z`), Lowercase (`a-z`), Numbers (`0-9`), Special Symbols (`!@#$%^&*()_+-=[]{}|;:,.<>?`), and an **Exclude ambiguous characters (`0, O, 1, l, I`)** option.
+- **Interactive Controls:** One-click regeneration, one-click clipboard copy with visual feedback, and a 7-rule strength meter (`Weak`, `Fair`, `Good`, `Strong`).
 
 ### 3.3. Client-Side Web Crypto Encryption Demo (`/dashboard`)
 - **Zero-Knowledge Architecture:** Cryptographic operations execute completely within the client browser using the W3C Web Crypto API (`window.crypto.subtle`).

@@ -70,11 +70,11 @@
 3. **Q: How does session persistence survive a browser refresh?**  
    **A:** Firebase Auth stores session tokens in browser storage (`IndexedDB`/local storage by default), and `AuthContext` reads the active session via `onAuthStateChanged`.
 4. **Q: What happens to the "Full name" entered on the `/register` page?**  
-   **A:** Currently our form validates that `name` is not empty, and `createUserWithEmailAndPassword` registers the email and password. Saving the display name via `updateProfile()` is not implemented yet.
+   **A:** Registration validates Full name, creates the Firebase user, and calls `updateProfile(userCredential.user, { displayName: name.trim() })` (with separate `try/catch` error handling) followed by `refreshUser()` so the saved name displays on the dashboard.
 5. **Q: What minimum password length do your forms check?**  
-   **A:** Registration validates at least **8 characters**, while the login form checks at least **6 characters** (matching Firebase's default minimum).
+   **A:** Using shared validation in `src/lib/authValidation.ts`, registration requires at least **8 characters** for strong new passwords, while login uses Firebase's **6-character** minimum so existing valid Firebase accounts are never wrongly rejected.
 6. **Q: How does the app handle a duplicate email during signup?**  
-   **A:** Firebase throws `auth/email-already-in-use`, which `register/page.tsx` catches and turns into `"This email is already registered. Please sign in instead."`
+   **A:** Firebase throws `auth/email-already-in-use`, which `getFirebaseAuthErrorMessage()` catches and turns into `"This email address is already registered. Please sign in instead."`
 7. **Q: Why does `src/lib/firebase.ts` check `getApps().length > 0`?**  
    **A:** During Next.js hot reloads or re-renders, calling `initializeApp()` twice throws an error. Checking `getApps().length` ensures a single app instance.
 8. **Q: Why do you check `typeof window !== "undefined"` in `firebase.ts`?**  
