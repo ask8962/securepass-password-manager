@@ -4,8 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ShieldCheck, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, isFirebaseConfigured } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
+import {
+  FIREBASE_NOT_CONFIGURED_MESSAGE,
+  MIN_REGISTER_PASSWORD_LENGTH,
+  getFirebaseAuthErrorMessage,
+  validateEmailField,
+  validatePasswordField,
+} from "@/lib/authValidation";
 
 type RegisterErrors = {
   name?: string;
@@ -16,6 +24,7 @@ type RegisterErrors = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,19 +38,20 @@ export default function RegisterPage() {
     const newErrors: RegisterErrors = {};
 
     if (!name.trim()) {
-      newErrors.name = "Name is required.";
+      newErrors.name = "Full name is required.";
     }
 
-    if (!email.trim()) {
-      newErrors.email = "Email is required.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address.";
+    const emailError = validateEmailField(email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
 
-    if (!password) {
-      newErrors.password = "Password is required.";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+    const passwordError = validatePasswordField(
+      password,
+      MIN_REGISTER_PASSWORD_LENGTH
+    );
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     if (!confirmPassword) {
@@ -61,31 +71,40 @@ export default function RegisterPage() {
     if (!validate()) return;
 
     if (!isFirebaseConfigured() || !auth) {
-      setAuthError(
-        "Firebase is not configured yet. Please add your Firebase credentials to .env.local to enable registration. (See docs/firebase-setup-notes.md)"
-      );
+      setAuthError(FIREBASE_NOT_CONFIGURED_MESSAGE);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      try {
+        await updateProfile(userCredential.user, {
+          displayName: name.trim(),
+        });
+        await refreshUser();
+      } catch (profileError: unknown) {
+        console.error("Firebase Profile Update Error:", profileError);
+        setAuthError(
+          "Your account was created, but your full name could not be saved to your profile right now."
+        );
+        return;
+      }
+
       router.push("/dashboard");
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
-      console.error("Firebase Registration Error:", error);
-
-      if (error.code === "auth/email-already-in-use") {
-        setAuthError("This email is already registered. Please sign in instead.");
-      } else if (error.code === "auth/weak-password") {
-        setAuthError("Password is too weak. Please use at least 8 characters.");
-      } else if (error.code === "auth/invalid-email") {
-        setAuthError("Invalid email address format.");
-      } else if (error.code === "auth/network-request-failed") {
-        setAuthError("Network error. Please check your internet connection.");
-      } else {
-        setAuthError(error.message || "Failed to create account. Please try again.");
-      }
+      console.error("Firebase Registration Error:", err);
+      setAuthError(
+        getFirebaseAuthErrorMessage(
+          err,
+          "Failed to create account. Please try again."
+        )
+      );
     } finally {
       setIsSubmitting(false);
     }

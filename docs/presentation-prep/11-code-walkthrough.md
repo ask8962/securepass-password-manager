@@ -138,26 +138,26 @@ export default function Header() {
 ---
 
 ## 7. Register Submit Handler (`src/app/register/page.tsx`)
-- **Why it exists:** Naya user account banata hai.
+- **Why it exists:** Naya user account banata hai aur Firebase Auth profile mein Full Name save karta hai.
 - **Actual Code Excerpt:**
 ```tsx
-    if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
-    }
-    ...
-    await createUserWithEmailAndPassword(auth, email.trim(), password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+    try {
+      await updateProfile(userCredential.user, { displayName: name.trim() });
+      await refreshUser();
+    } catch (profileError) { ... }
     router.push("/dashboard");
 ```
-- **Honest Detail:** Form mein `name` aur `confirmPassword` validate hote hain, lekin Firebase ko sirf `email.trim()` aur `password` bheja jaata hai (profile name abhi save nahi hota).
+- **Details:** `authValidation.ts` se consistent email/password checks chalte hain (`min >= 8` signup par, `min >= 6` login par), aur `updateProfile()` saved name ko `/dashboard` par show karta hai.
 
 ---
 
-## 8. `generatePassword()` (`src/app/generator/page.tsx`)
-- **Why it exists:** Predictable `Math.random()` ke bina cryptographic random password banata hai.
+## 8. `createCryptographicPassword()` (`src/app/generator/PasswordGeneratorClient.tsx`)
+- **Why it exists:** Predictable `Math.random()` ke bina client mount aur button click dono par cryptographic random password banata hai (loaded via `next/dynamic(..., { ssr: false })` in `src/app/generator/page.tsx`).
 - **Actual Code Excerpt:**
 ```tsx
     const array = new Uint32Array(length);
-    crypto.getRandomValues(array);
+    window.crypto.getRandomValues(array);
 
     let result = "";
     for (let i = 0; i < length; i++) {

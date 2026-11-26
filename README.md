@@ -4,7 +4,7 @@
 
 🔐 **SecurePass**
 
-A secure password manager with Two-Factor Authentication (2FA).
+A web-based password manager prototype with Two-Factor Authentication (2FA) architecture.
 
 **B.Tech CSE Final Year Project · Group G195 · GLA University, Mathura**
 
@@ -14,40 +14,45 @@ A secure password manager with Two-Factor Authentication (2FA).
 
 ## About
 
-SecurePass is a modern, web-based password manager built as a final-year B.Tech Computer Science project. It demonstrates secure credential storage, client-side encryption, and TOTP-based two-factor authentication.
+SecurePass is a final-year B.Tech Computer Science academic project designed to demonstrate strong random password generation, managed authentication, client-side Web Crypto encryption, and planned Time-Based One-Time Password (TOTP) two-factor authentication.
 
 ### Team Members
 
 | # | Name | Role |
 |---|------|------|
 | 1 | Anukalp Gupta | Project integration, architecture, repository management |
-| 2 | Nishant Singh | Frontend and UI components |
-| 3 | Dileep Bhardwaj | Authentication and Firebase integration |
-| 4 | Ayushmaan Gupta | Password generator and security features |
-| 5 | Utpal Kumar | Testing, documentation, and project demonstration |
+| 2 | Nishant Singh | Frontend UI review and components |
+| 3 | Dileep Bhardwaj | Authentication flows and Firebase testing |
+| 4 | Ayushmaan Gupta | Password generator enhancements and testing |
+| 5 | Utpal Kumar | Testing, documentation review, and encryption demonstration |
 
-## Tech Stack
+## Tech Stack (Actual `package.json`)
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 16, React 19, TypeScript |
-| Styling | Tailwind CSS 4 |
-| Authentication | Firebase Authentication (planned) |
-| Database | Firebase Firestore (planned) |
-| Backend API | Python FastAPI (planned, as per approved synopsis) |
-| Encryption | Web Crypto API (client-side) |
+| Layer | Technology | Status |
+|-------|-----------|--------|
+| Frontend | Next.js `16.4.6` (App Router), React `19.3.0`, TypeScript `^5` | Implemented |
+| Styling & Icons | Tailwind CSS `4.3.3` (light minimal theme), Lucide React `^1.78.0` | Implemented |
+| Authentication | Firebase Client SDK `^13.4.0` (Email/Password + `updateProfile`) | Implemented |
+| Encryption Demo | Browser Web Crypto API (`PBKDF2-SHA-256` + `AES-256-GCM` in RAM) | Implemented (In-Memory) |
+| Database | Cloud Firestore (Encrypted Vault CRUD) | Planned |
+| Multi-Factor Auth | TOTP (RFC 6238) | Planned |
+| Backend API | Python FastAPI (proposed in approved synopsis) | Planned |
 
-## Current Status — Week 1
+## Current Status — 25–30% Presentation Prototype
 
-✅ Project initialized with Next.js App Router + TypeScript + Tailwind CSS
-✅ Landing page with responsive design and dark mode
-✅ Login and registration forms with client-side validation
-✅ Initial dashboard with vault placeholder and navigation
-✅ Working password generator with `crypto.getRandomValues`
-✅ Documentation and project structure
+✅ Minimal light-themed responsive UI (`#fafafa` background) across 5 routes (`/`, `/login`, `/register`, `/dashboard`, `/generator`)  
+✅ Functional Firebase Email/Password authentication (`/register`, `/login`, session persistence via `onAuthStateChanged`, logout)  
+✅ Registration saves `displayName` to Firebase Auth via `updateProfile()` and displays it on the dashboard  
+✅ Client-side `/dashboard` route protection redirecting unauthenticated users to `/login`  
+✅ Consistent login (`>= 6` chars, preserving existing Firebase accounts) and registration (`>= 8` chars) validation via `src/lib/authValidation.ts`  
+✅ Cryptographically secure Password Generator using `window.crypto.getRandomValues()` initialized on the client without hydration mismatch, including length `4–128`, ambiguous character exclusion (`0, O, 1, l, I`), 7-rule strength meter, and clipboard copy  
+✅ Interactive Local Encryption Demonstration on `/dashboard` using Web Crypto API (`PBKDF2-SHA-256` 100,000 iterations + `AES-256-GCM` with 128-bit salt, 96-bit IV, and authentication tag rejection)
 
-⚠️ Firebase Authentication is **not connected** — forms validate but do not authenticate.
-⚠️ Encrypted vault and TOTP 2FA are **planned for future weeks**.
+⚠️ **Planned / Not Yet Implemented:**
+- Cloud Firestore encrypted vault storage & multi-entry CRUD (local encryption demo currently runs strictly in browser React state RAM).
+- Real TOTP Two-Factor Authentication (marked `"Coming Soon"` on the UI).
+- Python FastAPI auxiliary backend.
+- Automated unit/E2E test runner (verification currently uses `npx tsc --noEmit`, `npm run lint`, `npm run build`, and manual testing).
 
 ## Getting Started
 
@@ -67,23 +72,24 @@ cd securepass-password-manager
 # Install dependencies
 npm install
 
-# Copy environment template
+# Copy environment template and fill in your Firebase Web SDK keys
 cp .env.example .env.local
 
-# Start the development server
+# Start the development server (must use localhost for Web Crypto API)
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. See [docs/firebase-setup-notes.md](docs/firebase-setup-notes.md) for Firebase project setup instructions.
 
 ### Available Commands
 
 | Command | Description |
 |---------|------------|
 | `npm run dev` | Start development server |
-| `npm run build` | Build for production |
+| `npm run build` | Build for production (`next build --webpack`) |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint checks |
+| `npx tsc --noEmit` | Run TypeScript type check |
 
 ## Project Structure
 
@@ -91,54 +97,46 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 securepass/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Landing page
-│   │   ├── globals.css         # Global styles & theme
+│   │   ├── layout.tsx                   # Root layout wrapping children in AuthProvider
+│   │   ├── page.tsx                     # Minimal landing page
+│   │   ├── globals.css                  # Light theme variables & accessibility focus rules
 │   │   ├── login/
-│   │   │   └── page.tsx        # Login form
+│   │   │   └── page.tsx                 # Firebase Email/Password login page
 │   │   ├── register/
-│   │   │   └── page.tsx        # Registration form
+│   │   │   └── page.tsx                 # Firebase registration + updateProfile(displayName)
 │   │   ├── dashboard/
-│   │   │   └── page.tsx        # Vault dashboard
+│   │   │   └── page.tsx                 # Protected dashboard + AES-256-GCM local demo
 │   │   └── generator/
-│   │       └── page.tsx        # Password generator
-│   └── components/
-│       ├── Header.tsx          # Navigation header
-│       ├── Footer.tsx          # Page footer
-│       └── FeatureCard.tsx     # Feature display card
-├── docs/                       # Project documentation
-├── public/                     # Static assets
-├── .env.example                # Environment template
+│   │       ├── page.tsx                 # Client-only dynamic shell (ssr: false)
+│   │       └── PasswordGeneratorClient.tsx  # CSPRNG password generator
+│   ├── components/
+│   │   ├── Header.tsx                   # Landing page navigation header
+│   │   └── Footer.tsx                   # Page footer
+│   ├── context/
+│   │   └── AuthContext.tsx              # Auth state listener, logout, and refreshUser
+│   └── lib/
+│       ├── firebase.ts                  # Singleton Firebase App & Auth initialization
+│       ├── authValidation.ts            # Shared login/register validation & error messages
+│       └── crypto.ts                    # Web Crypto PBKDF2 + AES-256-GCM helpers
+├── docs/                                # Documentation, presentation prep & test notes
+├── public/                              # Static SVG assets
+├── .env.example                         # Environment template
 ├── package.json
 └── tsconfig.json
 ```
 
 ## Development Roadmap
 
-| Week | Milestone |
-|------|-----------|
-| **1** ✅ | Project foundation, landing page, auth UI, dashboard, password generator |
-| 2 | Firebase authentication, Firestore setup, database design |
-| 3 | Client-side encryption, master passphrase, encryption tests |
-| 4 | Encrypted credential CRUD, vault unlock |
-| 5 | TOTP MFA architecture, enrollment |
-| 6 | MFA verification, session management, auto-lock |
-| 7 | Recovery keys, password-strength analysis |
-| 8+ | Integration, hardening, testing, deployment |
+| Phase / Week | Milestone | Status |
+|--------------|-----------|--------|
+| **Phase 1 (Weeks 1–2 / Current)** | UI foundation, Firebase Email/Password Auth, CSPRNG Generator, Local AES-256-GCM Demo | ✅ Completed |
+| **Phase 2 (Weeks 3–4)** | Firestore encrypted vault CRUD, persistent master key workflow | ⬜ Planned |
+| **Phase 3 (Weeks 5–6)** | TOTP Two-Factor Authentication enrollment & verification, auto-lock | ⬜ Planned |
+| **Phase 4 (Weeks 7–8+)** | Recovery keys, breach/strength audit, FastAPI decision, automated tests | ⬜ Planned |
 
 ## Contributing
 
-This is an academic project. All five team members contribute through:
-
-1. Working on assigned feature branches.
-2. Creating pull requests for review.
-3. Following the contribution workflow in `docs/team-onboarding/`.
-
-See [docs/team-onboarding/contribution-workflow.md](docs/team-onboarding/contribution-workflow.md) for details.
-
-## License
-
-This project is developed for academic purposes at GLA University, Mathura.
+All team members follow the branch & Pull Request workflow documented in [docs/team-onboarding/contribution-workflow.md](docs/team-onboarding/contribution-workflow.md). Never commit `.env.local` or secrets.
 
 ---
 

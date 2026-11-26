@@ -79,9 +79,9 @@
 7. **Q: What is `copyToClipboard()` doing if clipboard access fails?**  
    **A:** It wraps `navigator.clipboard.writeText` in `try/catch` and sets the error `"Unable to copy to clipboard."`
 8. **Q: What happens when `/generator` first loads in the browser?**  
-   **A:** Look at line 29 of `generator/page.tsx`: an initial sample string `"k8#P9!vX$2mQ~L7r"` is displayed in state until the user clicks `"Generate New Password"`.
+   **A:** `src/app/generator/page.tsx` dynamically loads `PasswordGeneratorClient.tsx` with `{ ssr: false }`. On client initialization, `useState` immediately calls `createCryptographicPassword()` using `window.crypto.getRandomValues()`, so a fresh random password appears without any hydration mismatch.
 9. **Q: How does `useCallback` help `generatePassword`?**  
-   **A:** It memoizes the function so it updates cleanly whenever `length` or `options` changes.
+   **A:** It memoizes the click handler so it regenerates passwords cleanly whenever `length` or `options` changes.
 10. **Q: Can an unauthenticated user open `/generator`?**  
     **A:** Yes, `/generator` is accessible publicly from the landing page without login, and also linked from inside `/dashboard`.
 
@@ -89,12 +89,12 @@
 
 ## G. Five Difficult Follow-Up Questions
 
-1. **Q: Look at line 60 (`pool[array[i] % pool.length]`). Isn't modulo (`%`) theoretically biased when $2^{32}$ is not divisible by `pool.length`?**  
+1. **Q: Look at `createCryptographicPassword` (`pool[array[i] % pool.length]`). Isn't modulo (`%`) theoretically biased when $2^{32}$ is not divisible by `pool.length`?**  
    **A:** Technically yes, there is tiny modulo bias (~$2.0 \times 10^{-8}$ for an 88-char pool), which is negligible for a prototype; in hardened code, rejection sampling fixes even that tiny bias.
-2. **Q: Look at line 29 — why is the first displayed password `"k8#P9!vX$2mQ~L7r"` hardcoded instead of generated on load?**  
-   **A:** In React 19 with strict lint rules (`set-state-in-effect`) and Next.js SSR hydration matching, generating random text during SSR caused server/client mismatch warnings, so a static placeholder was set in initial state until the user clicks Generate.
-3. **Q: Note that `"~"` appears in the hardcoded initial password `"k8#P9!vX$2mQ~L7r"`, even though `"~"` is not in `CHAR_SETS.special`. Why?**  
-   **A:** Good catch — `"~"` is only in the static initial placeholder on line 29; `CHAR_SETS.special` uses `"!@#$%^&*()_+-=[]{}|;:,.<>?"` when generating new passwords.
+2. **Q: Why did you split `PasswordGeneratorClient.tsx` using `next/dynamic` with `ssr: false` instead of running `crypto.getRandomValues()` inside SSR or `useEffect`?**  
+   **A:** Running randomness during Next.js SSR produces different text on server vs client (hydration error), while calling `setState` directly inside `useEffect` triggers React 19's `set-state-in-effect` rule. Using `ssr: false` runs `useState(() => createCryptographicPassword(...))` cleanly on client initialization.
+3. **Q: Why reuse `createCryptographicPassword()` for both initial state and button click?**  
+   **A:** Keeping one shared pure generator function prevents duplicated logic between initial mount and user-triggered regeneration.
 4. **Q: Notice lines 76–80 pick `pos` and increment `(pos + 1) % length` if taken. Does linear probing bias positions?**  
    **A:** Slightly when collisions occur on very short passwords like length 4; shuffling the required characters (Fisher-Yates) would make placement completely uniform.
 5. **Q: Does clicking a checkbox immediately generate a new password?**  
@@ -121,4 +121,4 @@
 
 ## J. What to Say If a Feature Is Partially Implemented
 
-- *"The CSPRNG password generator and ambiguous character exclusion are fully working. Future enhancements include dynamically generating the very first password on client load (instead of the static `"k8#P9!vX$2mQ~L7r"` placeholder) and adding temporary session history."*
+- *"The CSPRNG password generator, ambiguous character exclusion, and client-initialized cryptographic startup are fully working. Future enhancements include temporary session history or excluding custom characters."*

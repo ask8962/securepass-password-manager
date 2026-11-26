@@ -100,12 +100,12 @@
 - **Hinglish:** Nahi. Firebase ke paas sirf account login details jaati hain; encryption demo ki master passphrase aur sample password browser memory ke bahar jaate hi nahi.
 
 **Q22. What happens when a user registers on `/register`?**
-- **English:** The form validates non-empty name, email format, 8+ character password, and matching confirmation password. It then calls Firebase `createUserWithEmailAndPassword()` and redirects to `/dashboard`.
-- **Hinglish:** Pehle form validation check hota hai, phir Firebase Auth mein account create hota hai aur user dashboard par redirect hota hai.
+- **English:** The form validates non-empty Full name, email format, 8+ character password, and matching confirmation password using `authValidation.ts`. It calls Firebase `createUserWithEmailAndPassword()`, saves `displayName` via `updateProfile()`, refreshes auth context, and redirects to `/dashboard`.
+- **Hinglish:** Pehle form validation check hota hai, phir Firebase Auth mein account create hota hai, `updateProfile()` naam save karta hai, aur user dashboard par redirect hota hai.
 
 **Q23. Where is the user's "Full name" saved after registration?**
-- **English:** Honestly, in this prototype the `name` input is validated on the UI form, but only `email` and `password` are sent to Firebase Auth (`updateProfile` is not called yet).
-- **Hinglish:** Sach bataayein toh abhi `name` sirf form validation check karta hai, Firebase mein save nahi hota — sirf email aur password save hota hai.
+- **English:** `register/page.tsx` saves it directly into the Firebase user's profile (`displayName`) using `updateProfile(userCredential.user, { displayName: name.trim() })` inside dedicated error handling, and displays it on `/dashboard`.
+- **Hinglish:** Registration ke baad `updateProfile()` naam ko Firebase user profile ke `displayName` mein save karta hai aur Dashboard par dikhata hai.
 
 **Q24. How does session persistence work when you refresh `/dashboard`?**
 - **English:** Firebase Auth stores the active session token in browser storage, and `AuthContext` subscribes to `onAuthStateChanged(auth, ...)` so refreshing restores the `user` object automatically.
@@ -156,8 +156,8 @@
 - **Hinglish:** Crash hone ke bajaye error message aa jaata hai ki kam se kam ek character type select karo.
 
 **Q35. What happens on initial page load of `/generator`?**
-- **English:** React initializes `password` state with a static sample string (`"k8#P9!vX$2mQ~L7r"`) to keep SSR/React 19 hydration clean until the user clicks `"Generate New Password"`.
-- **Hinglish:** Pehli baar page khulne par ek fixed sample string dikhti hai, aur button dabane par `crypto.getRandomValues()` naya random password banata hai.
+- **English:** `generator/page.tsx` renders `PasswordGeneratorClient` via `next/dynamic(..., { ssr: false })`. On browser initialization, React calls `createCryptographicPassword()` using `window.crypto.getRandomValues()` inside `useState`, generating a fresh password immediately with zero hydration mismatches.
+- **Hinglish:** Browser par page khulte hi `PasswordGeneratorClient` (`ssr: false`) client side par `crypto.getRandomValues()` se turant ek fresh random password bana deta hai, bina SSR hydration error ke.
 
 **Q36. Why use `Uint32Array` instead of `Uint8Array` in the generator?**
 - **English:** `Uint32Array` holds unsigned 32-bit integers up to ~4.29 billion, giving a huge random range when taking modulo (`% pool.length`) and minimizing modulo bias.

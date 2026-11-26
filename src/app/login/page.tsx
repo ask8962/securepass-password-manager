@@ -6,6 +6,13 @@ import { useState } from "react";
 import { ShieldCheck, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, isFirebaseConfigured } from "@/lib/firebase";
+import {
+  FIREBASE_NOT_CONFIGURED_MESSAGE,
+  MIN_LOGIN_PASSWORD_LENGTH,
+  getFirebaseAuthErrorMessage,
+  validateEmailField,
+  validatePasswordField,
+} from "@/lib/authValidation";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,16 +26,15 @@ export default function LoginPage() {
   function validate(): boolean {
     const newErrors: { email?: string; password?: string } = {};
 
-    if (!email.trim()) {
-      newErrors.email = "Email is required.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address.";
+    const emailError = validateEmailField(email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
 
-    if (!password) {
-      newErrors.password = "Password is required.";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters.";
+    // Use Firebase's 6-character minimum on login so valid existing accounts are not rejected.
+    const passwordError = validatePasswordField(password, MIN_LOGIN_PASSWORD_LENGTH);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     setErrors(newErrors);
@@ -42,9 +48,7 @@ export default function LoginPage() {
     if (!validate()) return;
 
     if (!isFirebaseConfigured() || !auth) {
-      setAuthError(
-        "Firebase is not configured yet. Please add your Firebase credentials to .env.local to enable real login. (See docs/firebase-setup-notes.md)"
-      );
+      setAuthError(FIREBASE_NOT_CONFIGURED_MESSAGE);
       return;
     }
 
@@ -53,22 +57,10 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       router.push("/dashboard");
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
-      console.error("Firebase Login Error:", error);
-
-      if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/user-not-found" ||
-        error.code === "auth/wrong-password"
-      ) {
-        setAuthError("Invalid email or password. Please check your credentials.");
-      } else if (error.code === "auth/too-many-requests") {
-        setAuthError("Too many failed attempts. Please try again in a few minutes.");
-      } else if (error.code === "auth/network-request-failed") {
-        setAuthError("Network error. Please check your internet connection.");
-      } else {
-        setAuthError(error.message || "Failed to sign in. Please try again.");
-      }
+      console.error("Firebase Login Error:", err);
+      setAuthError(
+        getFirebaseAuthErrorMessage(err, "Failed to sign in. Please try again.")
+      );
     } finally {
       setIsSubmitting(false);
     }

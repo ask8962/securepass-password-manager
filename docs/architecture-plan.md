@@ -10,30 +10,34 @@ SecurePass follows a client-heavy architecture where security-critical operation
 
 ```
 src/
-├── app/                    # Route-based pages
-│   ├── layout.tsx          # Root layout (dark theme)
-│   ├── page.tsx            # Landing / marketing page
-│   ├── login/page.tsx      # Authentication — login
-│   ├── register/page.tsx   # Authentication — registration
-│   ├── dashboard/page.tsx  # Vault interface
-│   └── generator/page.tsx  # Password generator tool
-├── components/             # Reusable UI components
-│   ├── Header.tsx
-│   ├── Footer.tsx
-│   └── FeatureCard.tsx
-└── lib/                    # Utility modules (planned)
-    ├── firebase.ts         # Firebase configuration (Week 2)
-    ├── crypto.ts           # Encryption/decryption (Week 3)
-    └── totp.ts             # TOTP generation/verification (Week 5)
+├── app/                         # Route-based pages (light theme)
+│   ├── layout.tsx               # Root layout wrapping AuthProvider
+│   ├── page.tsx                 # Minimal landing page
+│   ├── login/page.tsx           # Firebase Email/Password login
+│   ├── register/page.tsx        # Firebase registration + updateProfile()
+│   ├── dashboard/page.tsx       # Protected dashboard + AES-256-GCM local demo
+│   └── generator/
+│       ├── page.tsx             # Client-only dynamic wrapper (ssr: false)
+│       └── PasswordGeneratorClient.tsx # CSPRNG generator + excludeAmbiguous
+├── components/
+│   ├── Header.tsx               # Navigation header
+│   └── Footer.tsx               # Page footer
+├── context/
+│   └── AuthContext.tsx          # onAuthStateChanged session + logout + refreshUser
+└── lib/
+    ├── firebase.ts              # Singleton Firebase App & Auth init
+    ├── authValidation.ts        # Shared login/register validation & error messages
+    ├── crypto.ts                # Web Crypto PBKDF2 + AES-256-GCM demo module
+    └── totp.ts                  # TOTP verification (Planned - Phase 3)
 ```
 
-### 2. Firebase Services (Weeks 2+)
+### 2. Firebase Services
 
 | Service | Purpose | Status |
 |---------|---------|--------|
-| Authentication | Email/password signup and login | Week 2 |
-| Firestore | Store encrypted credential blobs | Week 2 |
-| Security Rules | Restrict data access per user | Week 2 |
+| Authentication | Email/password signup (`updateProfile`), login, session persistence | ✅ Implemented |
+| Firestore | Store encrypted credential blobs | ⬜ Planned |
+| Security Rules | Restrict data access per user | ⬜ Planned |
 
 ### 3. Python FastAPI Backend (Planned)
 
@@ -93,16 +97,15 @@ Firestore → Encrypted Blob → AES-256-GCM Decrypt (client-side) → Credentia
 5. **HTTPS only** — All communications over TLS (enforced by Firebase hosting).
 6. **Minimal dependencies** — Avoid unnecessary third-party packages for security-critical code.
 
-## Current Implementation (Week 1)
+## Current Implementation (25–30% Prototype)
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Landing page | ✅ Done | Responsive dark-mode design |
-| Login form | ✅ Done | Validation only, Firebase not connected |
-| Registration form | ✅ Done | Validation only, Firebase not connected |
-| Dashboard | ✅ Done | Placeholder vault, navigation |
-| Password generator | ✅ Done | Crypto.getRandomValues, strength meter |
-| Firebase Auth | ⬜ Week 2 | Requires Firebase project setup |
-| Firestore | ⬜ Week 2 | Database design pending |
-| Encryption module | ⬜ Week 3 | AES-256-GCM implementation |
-| TOTP module | ⬜ Week 5 | RFC 6238 implementation |
+| Landing page | ✅ Done | Minimal light-theme design |
+| Login form | ✅ Done | Connected to Firebase Auth + shared validation (`>= 6` chars) |
+| Registration form | ✅ Done | Connected to Firebase Auth + `updateProfile()` saving Full Name |
+| Dashboard & Demo | ✅ Done | Client-side route guard + AES-256-GCM / PBKDF2 in-memory demo |
+| Password generator | ✅ Done | Client-initialized `crypto.getRandomValues`, `excludeAmbiguous`, 7-rule meter |
+| Firestore | ⬜ Planned | Persistent encrypted credential storage |
+| TOTP module | ⬜ Planned | RFC 6238 two-factor verification |
+| FastAPI backend | ⬜ Planned | Proposed auxiliary API in synopsis |
