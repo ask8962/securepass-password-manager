@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   isConfigured: boolean;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,12 +17,14 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isConfigured: false,
   logout: async () => {},
+  refreshUser: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [configured] = useState<boolean>(() => isFirebaseConfigured());
   const [loading, setLoading] = useState<boolean>(() => isFirebaseConfigured());
+  const [, setProfileVersion] = useState(0);
 
   useEffect(() => {
     if (!auth) {
@@ -43,6 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    if (auth?.currentUser) {
+      await auth.currentUser.reload();
+      setUser(auth.currentUser);
+      setProfileVersion((v) => v + 1);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -50,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         isConfigured: configured,
         logout,
+        refreshUser,
       }}
     >
       {children}

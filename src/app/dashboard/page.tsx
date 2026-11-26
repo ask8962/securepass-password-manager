@@ -303,7 +303,13 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-foreground">
-                  {user ? `Welcome back, ${user.email}` : "Welcome to SecurePass Prototype"}
+                  {user
+                    ? `Welcome back, ${
+                        user.displayName
+                          ? `${user.displayName} (${user.email})`
+                          : user.email
+                      }`
+                    : "Welcome to SecurePass Prototype"}
                 </h2>
                 <p className="text-xs text-muted">
                   B.Tech CSE Major Project (25% Prototype) · Group G195 · GLA University
